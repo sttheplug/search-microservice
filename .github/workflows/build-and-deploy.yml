@@ -1,0 +1,38 @@
+name: Build and Deploy Search-Microservice
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Run Unit Tests
+        working-directory: ./search-microservice
+        run: mvn clean test
+
+      - name: Build JAR
+        working-directory: ./search-microservice
+        run: mvn clean package
+
+      - name: Build and Push Docker Image
+        working-directory: ./search-microservice
+        env:
+          DOCKER_USER: simon
+          DOCKER_PASS: Aprilapril23.
+        run: |
+          echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+          docker build --no-cache -t simon/search-microservice:latest .
+          docker push simon/search-microservice:latest
